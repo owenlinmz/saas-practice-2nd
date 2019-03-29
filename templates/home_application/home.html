@@ -1,0 +1,248 @@
+<%inherit file="/base.html"/>
+
+<%block name="content">
+<div class="home-page" id="app">
+    <div class="select">
+        <i-form>
+            <Form-item>
+                <i-select label="选择业务" v-model="bizModel" style="width:200px">
+                    <i-option v-for="item in bk_biz_id" :value="item.bk_biz_id"
+                              :key="item.bk_biz_name">{{ item.bk_biz_name }}</i-option>
+                </i-select>
+                <i-select label="选择集群" v-model="setModel" style="width:200px" clearable>
+                    <i-option v-for="item in sets" :value="item.bk_set_id"
+                              :key="item.bk_set_name">{{ item.bk_set_name }}</i-option>
+                </i-select>
+                <i-input v-model="ip_list" placeholder="请输入IP (使用逗号分隔)" style="width: 300px"></i-input>
+            </Form-item>
+
+            <i-button type="primary" @click="search_host" style="margin:0 10px">查询主机</i-button>
+            <i-button type="success" @click="execute_job" style="margin:0 20px">执行作业</i-button>
+            <i-button type="success" @click="get_performance">手动执行获取主机状态脚本</i-button>
+        </i-form>
+    </div>
+    <div class="host_list">
+        <Card style="width: 100%;">
+            <p slot="title">
+                <Icon type="ios-film-outline"></Icon>
+                主机列表
+            </p>
+            <i-table stripe height="300" width="100%" :columns="columns" :data="hosts"></i-table>
+        </Card>
+    </div>
+</div>
+</%block>
+
+<script>
+    Vue.prototype.$http = axios;
+    let vm = new Vue({
+        el: "#app",
+        data: {
+            bk_biz_id: [],
+            bizModel: '',
+            sets: [],
+            setModel: '',
+            columns: [
+                {
+                    title: '内外IP',
+                    key: 'bk_host_innerip'
+                },
+                {
+                    title: '系统名',
+                    key: 'bk_os_name'
+                },
+                {
+                    title: '主机名',
+                    key: 'bk_host_name'
+                },
+                {
+                    title: '云区域',
+                    key: 'bk_inst_name'
+                },
+                {
+                    title: '内存使用率',
+                    key: 'mem'
+                },
+                {
+                    title: '磁盘使用率',
+                    key: 'disk'
+                },
+                {
+                    title: 'cpu使用率',
+                    key: 'cpu'
+                },
+                {
+                    title: '操作',
+                    key: 'action',
+                    width: 300,
+                    align: 'center',
+                    render: (h, params) => {
+                        return h('div', [
+                            h('Button', {
+                                props: {
+                                    type: 'primary',
+                                    size: 'small'
+                                },
+                                style: {
+                                    marginRight: '10px'
+                                },
+                                on: {
+                                    click: () => {
+                                        vm.update_pfm(params.row)
+                                    }
+                                }
+                            }, '更新主机数据'),
+                            h('Button', {
+                                props: {
+                                    type: vm.button_style[Number(params.row.is_delete)].color,
+                                    size: 'small'
+                                },
+                                on: {
+                                    click: () => {
+                                        vm.switch_pfm(params.row)
+                                    }
+                                }
+                            }, vm.button_style[Number(params.row.is_delete)].title)
+                        ]);
+                    }
+                }
+            ],
+            hosts: [],
+            job_instance_id: 0,
+            ip_list: '',
+            button_style: [
+                {
+                    color: 'success',
+                    title: '已启用监控'
+                },
+                {
+                    color: 'error',
+                    title: '已停止监控'
+                }
+            ]
+        },
+        methods: {
+            get_biz: function () {
+                let url = site_url + 'get_biz/';
+                this.$http.get(url).then(response => {
+                    this.bk_biz_id = response.data.data;
+                }).catch(error => {
+                    console.log(error)
+                });
+            },
+            search_host: function () {
+                this.real_hosts = [];
+                let url = site_url + 'search_host/';
+                let params = {
+                    bk_host_innerip__in: this.ip_list,
+                    bk_set_id__contains: this.setModel,
+                    bk_biz_id: this.bizModel
+                };
+                this.$http.post(url, params).then(response => {
+                    this.hosts = response.data.data;
+                }).catch(error => {
+                        console.log(error)
+                    }
+                );
+            },
+            get_sets: function () {
+                let url = site_url + 'get_set/?bk_biz_id=' + this.bizModel;
+                this.$http.get(url).then(response => {
+                    this.sets = response.data.data;
+                }).catch(error => {
+                    console.log(error)
+                });
+            },
+            execute_job: function () {
+                let url = site_url + 'execute_job/';
+                let ip_list = [];
+                for (let i = 0; i < this.hosts.length; i++) {
+                    ip_list.push({
+                        ip: this.hosts[i].bk_host_innerip,
+                        bk_cloud_id: this.hosts[i].bk_cloud_id
+                    })
+                }
+                let params = {
+                    bk_biz_id: this.bizModel,
+                    ip_list: ip_list
+                };
+                this.$http.post(url, JSON.stringify(params)).then(response => {
+                    if (response.data) {
+                        alert("作业已执行");
+                        this.job_instance_id = response.data.job_instance_id
+                    } else {
+                        alert("作业执行失败")
+                    }
+                }).catch(error => {
+                    console.log(error)
+                })
+            },
+            get_performance: function () {
+                let url = site_url + 'get_performance/';
+                let ip_list = [];
+                for (let i = 0; i < this.hosts.length; i++) {
+                    // 去掉停止监控的主机
+                    if (this.hosts[i].is_delete === false) {
+                        ip_list.push({
+                            ip: this.hosts[i].bk_host_innerip,
+                            bk_cloud_id: this.hosts[i].bk_cloud_id
+                        })
+                    }
+                }
+                let params = {
+                    bk_biz_id: this.bizModel,
+                    ip_list: ip_list
+                };
+                this.$http.post(url, params).then(response => {
+                    if (response.data.result) {
+                        alert("查询成功");
+                    } else {
+                        alert("查询失败")
+                    }
+                })
+            },
+            update_pfm: function (data) {
+                console.log(data);
+                url = site_url + 'get_new_pfm/?ip=' + data.bk_host_innerip;
+                this.$http.get(url).then(response => {
+                    Vue.set(this.hosts, data._index, response.data.data)
+                });
+            },
+            switch_pfm: function (data) {
+                params = {
+                    is_delete: !data.is_delete,
+                    ip: data.bk_host_innerip
+                };
+                url = site_url + 'switch_performance/';
+                this.$http.post(url, params).then(response => {
+                    Vue.set(this.hosts, data._index, response.data.data)
+                })
+            }
+        },
+        mounted() {
+            this.get_biz();
+        },
+        watch: {
+            bizModel() {
+                this.get_sets();
+                this.search_host();
+            },
+            setModel() {
+                this.search_host();
+            }
+        }
+
+    })
+</script>
+
+<style>
+    .select {
+        margin-left: 20%;
+        margin-top: 20px;
+        width: 60%;
+    }
+
+    .host_list {
+        margin-top: 50px;
+    }
+</style>
