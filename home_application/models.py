@@ -13,10 +13,20 @@ class HostInfo(models.Model):
     last_user = models.CharField(u'用户名', max_length=50, default='admin')
     is_delete = models.BooleanField(u'是否删除', default=False)
 
-# class HostPerformance(models.Model):
-#     bk_host_innerip = models.ForeignKey(HostInfo, max_length=20, on_delete=models.CASCADE)
-#     mem = models.CharField(u'内存使用率', max_length=10)
-#     disk = models.CharField(u'磁盘使用率', max_length=10)
-#     cpu = models.CharField(u'CPU使用率', max_length=10)
-#     is_delete = models.BooleanField(u'是否删除', default=False)
-#     check_time = models.DateTimeField(u'检测时间', auto_now=True)
+
+class HostLoad5(models.Model):
+    bk_host_innerip = models.ForeignKey(HostInfo, max_length=20, on_delete=models.CASCADE)
+    load5 = models.CharField(u'5分钟负载', max_length=10)
+    check_time = models.DateTimeField(u'检测时间', auto_now=True)
+
+
+class HostDisk(models.Model):
+    bk_host_innerip = models.ForeignKey(HostInfo, max_length=20, on_delete=models.CASCADE)
+    disk = models.TextField(u'硬盘情况')
+    check_time = models.DateTimeField(u'检测时间', auto_now=True)
+
+
+class HostMem(models.Model):
+    bk_host_innerip = models.ForeignKey(HostInfo, max_length=20, on_delete=models.CASCADE)
+    mem = models.TextField(u'内存情况')
+    check_time = models.DateTimeField(u'检测时间', auto_now=True)

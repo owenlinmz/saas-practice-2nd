@@ -7,13 +7,14 @@ import base64
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
-from blueking.component.shortcuts import get_client_by_request
+from blueking.component.shortcuts import get_client_by_request, get_client_by_user
+from common.log import logger
 from common.mymako import render_mako_context
 from common.mymako import render_json
 from common_esb import *
 from django.forms.models import model_to_dict
 
-from home_application.models import HostInfo
+from home_application.models import HostInfo, HostLoad5
 
 
 def home(request):
@@ -127,6 +128,104 @@ def delete_host(request):
     ip = params['ip']
     HostInfo.objects.filter(bk_host_innerip=ip).update(is_delete=True)
     return render_json({'data': u'删除成功'})
+
+
+@csrf_exempt
+def display_performance(request):
+    def generate_data(pfm_list):
+        if not pfm_list:
+            return None
+        xAxis = []
+        series = []
+        load5 = []
+
+        for host_pfm in pfm_list:
+            xAxis.append(host_pfm.check_time.strftime("%Y-%m-%d %H:%M:%S"))
+            load5.append(host_pfm.load5)
+        series.append({
+            'name': 'load5',
+            'type': 'line',
+            'data': load5
+        })
+        return {
+            "xAxis": xAxis,
+            "series": series,
+            "title": pfm_list[0].bk_host_innerip.bk_host_innerip
+        }
+
+    ip = request.GET.get('ip')
+    now = datetime.datetime.now()
+    load5 = HostLoad5.objects.filter(bk_host_innerip=ip)
+    load5_result = generate_data(load5)
+    return render_json({'load5': load5_result})
+
+
+@csrf_exempt
+def get_load5(request):
+    host_info_list = HostInfo.objects.filter(is_delete=False)
+
+    ip_list = []
+    if not host_info_list:
+        return
+    else:
+        username = host_info_list[0].last_user
+        bk_biz_id = host_info_list[0].bk_biz_id
+
+    for host_info in host_info_list:
+        ip_list.append({
+            'ip': host_info.bk_host_innerip,
+            'bk_cloud_id': host_info.bk_cloud_id
+        })
+
+    client = get_client_by_user(username)
+    load5_script = '''#!/bin/bash
+cat /proc/loadavg'''
+
+    mem_script = '''#!/bin/bash
+free –m'''
+
+    disk_script = '''#!/bin/bash
+df –h'''
+
+    data = {
+        'ip_list': ip_list,
+        'bk_biz_id': bk_biz_id
+    }
+    res = fast_execute_script_esb(client, 'admin', data, base64.b64encode(load5_script))
+    time.sleep(5)
+    if res['data']:
+        params = {}
+        params.update({'bk_biz_id': data['bk_biz_id'], 'job_instance_id': res['data']['job_instance_id']})
+        res = get_job_instance_log_esb(client, 'admin', params)
+
+        for i in range(5):
+            if res['data'][0]['status'] != 3:
+                time.sleep(2)
+                res = get_job_instance_log_esb(client, 'admin', params)
+            else:
+                break
+
+        if res['data'][0]['status'] == 3:
+            # 处理性能数据
+            try:
+                pfm_data = res['data'][0]['step_results'][0]['ip_logs']
+            except KeyError:
+                pfm_data = []
+            for item in pfm_data:
+                result = item['log_content'].split(' ')
+                load5 = result[1]
+                mem = result[1]
+                disk = result[2]
+                cpu = result[3]
+                ip = item['ip']
+                host_info = HostInfo.objects.get(bk_host_innerip=ip)
+                host_pfm = HostLoad5.objects.create(
+                    bk_host_innerip=host_info,
+                    check_time=datetime.datetime.now(),
+                    load5=load5
+                )
+            now = datetime.datetime.now()
+            logger.info(u"主机{}完成一条性能查询：{}".format(host_pfm.bk_host_innerip, now))
 
 
 class CommonUtil(object):

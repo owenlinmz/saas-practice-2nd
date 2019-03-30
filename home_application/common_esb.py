@@ -140,4 +140,3 @@ def get_job_instance_log_esb(client, username, data):
         return {'data': res['data']}
     return {'data': []}
 
-##########################################################################3

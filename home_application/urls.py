@@ -14,6 +14,8 @@ urlpatterns = patterns(
     (r'^search_host/$', 'get_host'),
     (r'^list_host/$', 'list_host'),
     (r'^add_host/$', 'add_host'),
-    (r'^delete_host/$', 'delete_host')
+    (r'^delete_host/$', 'delete_host'),
+    (r'^get_load5/$', 'get_load5'),
+    (r'^display_performance/$', 'display_performance')
 
 )
