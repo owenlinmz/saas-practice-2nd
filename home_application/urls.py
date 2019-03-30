@@ -9,8 +9,11 @@ urlpatterns = patterns(
     (r'^contactus/$', 'contactus'),
     (r'^api/test/$', 'test'),
     (r'^history/$', 'history'),
-    (r'^performance/$', 'performance'),
     (r'^get_set/$', 'get_set'),
     (r'^get_biz/$', 'get_biz'),
-    (r'^search_host/$', 'get_host')
+    (r'^search_host/$', 'get_host'),
+    (r'^list_host/$', 'list_host'),
+    (r'^add_host/$', 'add_host'),
+    (r'^delete_host/$', 'delete_host')
+
 )

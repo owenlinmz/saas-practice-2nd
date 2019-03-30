@@ -95,24 +95,29 @@ def get_job_instance_status():
 
 @periodic_task(run_every=crontab(minute='*/1', hour='*', day_of_week='*'))
 def get_performance():
-    host_info_list = HostInfo.objects.filter(is_delete=False, bk_os_name__contains='linux')
+    host_info_list = HostInfo.objects.filter(is_delete=False)
+
     ip_list = []
+    if not host_info_list:
+        return
+    else:
+        username = host_info_list[0].last_user
+        bk_biz_id = host_info_list[0].bk_biz_id
+
     for host_info in host_info_list:
         ip_list.append({
             'ip': host_info.bk_host_innerip,
             'bk_cloud_id': host_info.bk_cloud_id
         })
-    client = get_client_by_user('admin')
+
+    client = get_client_by_user(username)
     script_content = '''#!/bin/bash
-        MEMORY=$(free -m | awk 'NR==2{printf "%.2f%%", $3*100/$2 }')
-        DISK=$(df -h | awk '$NF=="/"{printf "%s", $5}')
-        CPU=$(top -bn1 | grep load | awk '{printf "%.2f%%", $(NF-2)}')
-        DATE=$(date "+%Y-%m-%d %H:%M:%S")
-        echo -e "$DATE|$MEMORY|$DISK|$CPU"
+        cat /proc/loadavg
         '''
+
     data = {
         'ip_list': ip_list,
-        'bk_biz_id': 2
+        'bk_biz_id': bk_biz_id
     }
     res = fast_execute_script(client, 'admin', data, base64.b64encode(script_content))
     time.sleep(5)
@@ -135,8 +140,8 @@ def get_performance():
             except KeyError:
                 pfm_data = []
             for item in pfm_data:
-                result = item['log_content'].split('|')
-                check_time = result[0]
+                result = item['log_content'].split(' ')
+                load_5 = result[1]
                 mem = result[1]
                 disk = result[2]
                 cpu = result[3]

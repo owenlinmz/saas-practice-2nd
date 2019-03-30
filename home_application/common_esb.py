@@ -48,7 +48,7 @@ def search_set_esb(client, username, bk_biz_id):
     return {'data': []}
 
 
-def search_host_esb(client, username, bk_biz_id, bk_set_id=None):
+def search_host_esb(client, username, bk_biz_id=None):
     """
     通过业务ID或集群ID获取主机
     """
@@ -57,35 +57,18 @@ def search_host_esb(client, username, bk_biz_id, bk_set_id=None):
         "bk_app_code": client.app_code,
         "bk_app_secret": client.app_secret,
         "bk_username": username,
-        "bk_biz_id": bk_biz_id,
         "condition": [
             {
-                "bk_obj_id": "set",
-                "fields": [
-                    "bk_set_name",
-                    "bk_set_id"
-                ]
-            },
-            {
-                "bk_obj_id": "module",
-                "fields": ["bk_set_name",
-                           "bk_set_id"],
+                "bk_obj_id": "biz",
+                "fields": [],
                 "condition": []
             }
         ]
     }
-    if bk_set_id:
-        params['condition'][0].update(
-            {
-                "condition": [
-                    {
-                        "field": "bk_set_id",
-                        "operator": "$eq",
-                        "value": bk_set_id
-                    }
-                ]
-            }
-        )
+    if bk_biz_id:
+        params.update({
+            'bk_biz_id': bk_biz_id
+        })
     res = client.cc.search_host(params)
     if res['result']:
         return {'data': res['data']['info']}
@@ -157,7 +140,4 @@ def get_job_instance_log_esb(client, username, data):
         return {'data': res['data']}
     return {'data': []}
 
-
-
 ##########################################################################3
-
