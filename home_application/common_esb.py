@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-def search_business(client, username):
+
+def search_business_esb(client, username):
     """
     获取业务
     """
@@ -23,7 +24,7 @@ def search_business(client, username):
     return {'data': []}
 
 
-def search_set(client, username, bk_biz_id):
+def search_set_esb(client, username, bk_biz_id):
     """
     获取集群
     """
@@ -47,7 +48,7 @@ def search_set(client, username, bk_biz_id):
     return {'data': []}
 
 
-def get_host_by_biz_and_set(client, username, bk_biz_id, bk_set_id=None):
+def search_host_esb(client, username, bk_biz_id, bk_set_id=None):
     """
     通过业务ID或集群ID获取主机
     """
@@ -121,7 +122,7 @@ def execute_job_esb(client, username, data):
     return {'data': {}}
 
 
-def fast_execute_script(client, username, data, script_content):
+def fast_execute_script_esb(client, username, data, script_content):
     """
     快速执行脚本
     """
@@ -140,7 +141,7 @@ def fast_execute_script(client, username, data, script_content):
     return {'data': {}}
 
 
-def get_job_instance_log(client, username, data):
+def get_job_instance_log_esb(client, username, data):
     """
     查询作业执行日志
     """
@@ -155,3 +156,8 @@ def get_job_instance_log(client, username, data):
     if res['result']:
         return {'data': res['data']}
     return {'data': []}
+
+
+
+##########################################################################3
+

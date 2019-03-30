@@ -1,145 +1,145 @@
-<%inherit file="/base.html"/>
-
-<%block name="content">
-<div class="history" id="app">
-
-    <div class="select">
-        <i-form>
-            <Form-item label="选择业务">
-                <i-select v-model="bizModel" style="width:200px">
-                    <i-option v-for="item in bk_biz_id" :value="item.bk_biz_id"
-                              :key="item.bk_biz_name">{{ item.bk_biz_name }}</i-option>
-                </i-select>
-            </Form-item>
-            <i-input v-model="ip" placeholder="请输入IP" style="width: 250px"/>
-        </i-form>
-        <i-button type="info" @click="searchHistory" style="margin: 20px 100px">查询历史</i-button>
-    </div>
-    <div class="host_list">
-        <Card style="width: 1035px">
-            <p slot="title">
-                <Icon type="ios-film-outline"></Icon>
-                历史列表
-            </p>
-            <i-table height="300" :columns="columns" :data="host_data"></i-table>
-        </Card>
-    </div>
-</div>
-</%block>
-
-<script>
-    Vue.prototype.$http = axios;
-    let vm = new Vue({
-        el: "#app",
-        data: {
-            ip: '',
-            bk_biz_id: [],
-            bizModel: '',
-            columns: [
-                {
-                    title: '业务',
-                    key: 'bk_biz_id'
-                },
-                {
-                    title: '用户',
-                    key: 'user_name'
-                },
-                {
-                    title: '作业ID',
-                    key: 'job_id'
-                },
-                {
-                    title: '操作时间',
-                    key: 'operation_time'
-                },
-                {
-                    title: '主机列表',
-                    key: 'host'
-                },
-                {
-                    title: '作业实例ID',
-                    key: 'job_instance_id'
-                },
-                {
-                    title: '作业状态',
-                    key: 'job_status'
-                },
-                {
-                    title: '日志',
-                    key: 'action',
-                    width: 150,
-                    align: 'center',
-                    render: (h, params) => {
-                        return h('div', [
-                            h('Button', {
-                                props: {
-                                    type: 'primary',
-                                    size: 'small'
-                                },
-                                style: {
-                                    marginRight: '5px'
-                                },
-                                on: {
-                                    click: () => {
-                                        vm.searchLog(params)
-                                    }
-                                }
-                            }, '查看日志')
-                        ]);
-                    }
-                }
-            ],
-            host_data: [],
-            history_data: []
-        },
-        methods: {
-            get_biz() {
-                let self = this;
-                let url = site_url + 'get_biz/';
-                this.$http.get(url).then(response => {
-                    self.bk_biz_id = response.data.data;
-                }).catch(error => {
-                    console.log(error)
-                });
-            },
-            searchLog(params) {
-                let result = params.row.job_log;
-                console.log(result);
-                this.$Modal.info({
-                    title: '日志',
-                    content: result,
-                });
-            },
-            searchHistory() {
-                let self = this;
-                let url = site_url + 'search_job_history_in_db/?bk_biz_id=' + self.bizModel
-                this.$http.get(url).then(response => {
-                    self.host_data = response.data.data
-                }).catch(error => {
-                    console.log(error)
-                });
-            }
-        },
-        mounted() {
-            this.get_biz();
-        },
-        watch: {
-            bizMode() {
-                this.searchHistory();
-            }
-        }
-
-    })
-</script>
-
-<style>
-    .select {
-        margin-left: 35%;
-        margin-top: 20px;
-    }
-
-    .host_list {
-        margin-top: 50px;
-        margin-left: 15%;
-    }
-</style>
+{#<%inherit file="/base.html"/>#}
+{##}
+{#<%block name="content">#}
+{#<div class="history" id="app">#}
+{##}
+{#    <div class="select">#}
+{#        <i-form>#}
+{#            <Form-item label="选择业务">#}
+{#                <i-select v-model="bizModel" style="width:200px">#}
+{#                    <i-option v-for="item in bk_biz_id" :value="item.bk_biz_id"#}
+{#                              :key="item.bk_biz_name">{{ item.bk_biz_name }}</i-option>#}
+{#                </i-select>#}
+{#            </Form-item>#}
+{#            <i-input v-model="ip" placeholder="请输入IP" style="width: 250px"/>#}
+{#        </i-form>#}
+{#        <i-button type="info" @click="searchHistory" style="margin: 20px 100px">查询历史</i-button>#}
+{#    </div>#}
+{#    <div class="host_list">#}
+{#        <Card style="width: 1035px">#}
+{#            <p slot="title">#}
+{#                <Icon type="ios-film-outline"></Icon>#}
+{#                历史列表#}
+{#            </p>#}
+{#            <i-table height="300" :columns="columns" :data="host_data"></i-table>#}
+{#        </Card>#}
+{#    </div>#}
+{#</div>#}
+{#</%block>#}
+{##}
+{#<script>#}
+{#    Vue.prototype.$http = axios;#}
+{#    let vm = new Vue({#}
+{#        el: "#app",#}
+{#        data: {#}
+{#            ip: '',#}
+{#            bk_biz_id: [],#}
+{#            bizModel: '',#}
+{#            columns: [#}
+{#                {#}
+{#                    title: '业务',#}
+{#                    key: 'bk_biz_id'#}
+{#                },#}
+{#                {#}
+{#                    title: '用户',#}
+{#                    key: 'user_name'#}
+{#                },#}
+{#                {#}
+{#                    title: '作业ID',#}
+{#                    key: 'job_id'#}
+{#                },#}
+{#                {#}
+{#                    title: '操作时间',#}
+{#                    key: 'operation_time'#}
+{#                },#}
+{#                {#}
+{#                    title: '主机列表',#}
+{#                    key: 'host'#}
+{#                },#}
+{#                {#}
+{#                    title: '作业实例ID',#}
+{#                    key: 'job_instance_id'#}
+{#                },#}
+{#                {#}
+{#                    title: '作业状态',#}
+{#                    key: 'job_status'#}
+{#                },#}
+{#                {#}
+{#                    title: '日志',#}
+{#                    key: 'action',#}
+{#                    width: 150,#}
+{#                    align: 'center',#}
+{#                    render: (h, params) => {#}
+{#                        return h('div', [#}
+{#                            h('Button', {#}
+{#                                props: {#}
+{#                                    type: 'primary',#}
+{#                                    size: 'small'#}
+{#                                },#}
+{#                                style: {#}
+{#                                    marginRight: '5px'#}
+{#                                },#}
+{#                                on: {#}
+{#                                    click: () => {#}
+{#                                        vm.searchLog(params)#}
+{#                                    }#}
+{#                                }#}
+{#                            }, '查看日志')#}
+{#                        ]);#}
+{#                    }#}
+{#                }#}
+{#            ],#}
+{#            host_data: [],#}
+{#            history_data: []#}
+{#        },#}
+{#        methods: {#}
+{#            get_biz() {#}
+{#                let self = this;#}
+{#                let url = site_url + 'get_biz/';#}
+{#                this.$http.get(url).then(response => {#}
+{#                    self.bk_biz_id = response.data.data;#}
+{#                }).catch(error => {#}
+{#                    console.log(error)#}
+{#                });#}
+{#            },#}
+{#            searchLog(params) {#}
+{#                let result = params.row.job_log;#}
+{#                console.log(result);#}
+{#                this.$Modal.info({#}
+{#                    title: '日志',#}
+{#                    content: result,#}
+{#                });#}
+{#            },#}
+{#            searchHistory() {#}
+{#                let self = this;#}
+{#                let url = site_url + 'search_job_history_in_db/?bk_biz_id=' + self.bizModel#}
+{#                this.$http.get(url).then(response => {#}
+{#                    self.host_data = response.data.data#}
+{#                }).catch(error => {#}
+{#                    console.log(error)#}
+{#                });#}
+{#            }#}
+{#        },#}
+{#        mounted() {#}
+{#            this.get_biz();#}
+{#        },#}
+{#        watch: {#}
+{#            bizMode() {#}
+{#                this.searchHistory();#}
+{#            }#}
+{#        }#}
+{##}
+{#    })#}
+{#</script>#}
+{##}
+{#<style>#}
+{#    .select {#}
+{#        margin-left: 35%;#}
+{#        margin-top: 20px;#}
+{#    }#}
+{##}
+{#    .host_list {#}
+{#        margin-top: 50px;#}
+{#        margin-left: 15%;#}
+{#    }#}
+{#</style>#}
