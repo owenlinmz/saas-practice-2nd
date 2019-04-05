@@ -22,10 +22,10 @@ from django.conf.global_settings import *  # noqa
 # 应用基本信息配置 (请按照说明修改)
 # ==============================================================================
 # 在蓝鲸智云开发者中心 -> 点击应用ID -> 基本信息 中获取 APP_ID 和 APP_TOKEN 的值
-APP_ID = 'owenlin-exam'
-APP_TOKEN = 'f7cc4af0-0656-4fd4-8ba3-91a915b41d65'
+APP_ID = 'owenlin-practice'
+APP_TOKEN = 'e68b0229-e048-47e7-8840-41f8a960f964'
 # 蓝鲸智云开发者中心的域名，形如：http://paas.bking.com
-BK_PAAS_HOST = 'http://paas.bk.com'
+BK_PAAS_HOST = 'http://paas.exam.com'
 
 # 请求官方 API 默认版本号，可选值为："v2" 或 ""；其中，"v2"表示规范化API，""表示未规范化API
 DEFAULT_BK_API_VER = 'v2'
